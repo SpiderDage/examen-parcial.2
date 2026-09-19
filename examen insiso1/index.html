@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Registro de combustible</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #dfe6e9;
+            margin: 0;
+            padding: 30px;
+        }
+
+        .caja {
+            width: 600px;
+            margin: auto;
+            background-color: white;
+            border: 2px solid #444;
+            padding: 20px;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-top: 0;
+            border-bottom: 2px solid #444;
+            padding-bottom: 10px;
+        }
+
+        label {
+            display: inline-block;
+            width: 180px;
+            margin-bottom: 15px;
+        }
+
+        select, input {
+            width: 200px;
+            padding: 5px;
+        }
+
+        button {
+            padding: 7px 15px;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+
+        .resultado {
+            margin-top: 20px;
+            border: 1px solid #777;
+            padding: 12px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th, td {
+            border: 1px solid #555;
+            padding: 8px;
+        }
+
+        th {
+            background-color: #ececec;
+        }
+
+        .total {
+            font-weight: bold;
+        }
+
+        .reiniciar {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="caja">
+
+    <h1>Registro de venta de combustible</h1>
+
+    <label>Combustible</label>
+
+    <select id="tipo">
+        <option value="super">Súper</option>
+        <option value="regular">Regular</option>
+        <option value="diesel">Diésel</option>
+    </select>
+
+    <br>
+
+    <label>Galones vendidos</label>
+
+    <input type="number" id="cantidad">
+
+    <br>
+
+    <button onclick="registrar()">Registrar</button>
+
+    <div class="resultado">
+        <b>Última venta</b>
+        <p id="respuesta">Todavía no se ha registrado ninguna venta.</p>
+    </div>
+
+    <h2>Resumen del día</h2>
+
+    <table>
+        <tr>
+            <th>Tipo</th>
+            <th>Total vendido</th>
+        </tr>
+
+        <tr>
+            <td>Súper</td>
+            <td id="ventaSuper">Q0.00</td>
+        </tr>
+
+        <tr>
+            <td>Regular</td>
+            <td id="ventaRegular">Q0.00</td>
+        </tr>
+
+        <tr>
+            <td>Diésel</td>
+            <td id="ventaDiesel">Q0.00</td>
+        </tr>
+
+        <tr class="total">
+            <td>Total general</td>
+            <td id="ventaTotal">Q0.00</td>
+        </tr>
+    </table>
+
+    <p>
+        <b>Galones que recibieron subsidio:</b>
+        <span id="galonesConSubsidio">0.00</span>
+    </p>
+
+    <button class="reiniciar" onclick="borrarDatos()">Nuevo día</button>
+
+</div>
+
+<script>
+
+let superDia = Number(localStorage.getItem("superDia")) || 0;
+let regularDia = Number(localStorage.getItem("regularDia")) || 0;
+let dieselDia = Number(localStorage.getItem("dieselDia")) || 0;
+let subsidiados = Number(localStorage.getItem("subsidiados")) || 0;
+
+actualizar();
+
+function registrar() {
+
+    let tipo = document.getElementById("tipo").value;
+    let galones = Number(document.getElementById("cantidad").value);
+
+    if (galones <= 0) {
+        alert("Ingrese una cantidad válida");
+        return;
+    }
+
+    let precio = 0;
+    let estado = "";
+
+    if (tipo == "super") {
+
+        if (galones > 100) {
+            precio = 37.82;
+            estado = "No aplica subsidio";
+        } else {
+            precio = 32.82;
+            estado = "Sí aplica subsidio";
+            subsidiados = subsidiados + galones;
+        }
+
+    }
+
+    if (tipo == "regular") {
+
+        if (galones > 100) {
+            precio = 36.57;
+            estado = "No aplica subsidio";
+        } else {
+            precio = 31.57;
+            estado = "Sí aplica subsidio";
+            subsidiados = subsidiados + galones;
+        }
+
+    }
+
+    if (tipo == "diesel") {
+
+        if (galones > 100) {
+            precio = 36.75;
+            estado = "No aplica subsidio";
+        } else {
+            precio = 29.75;
+            estado = "Sí aplica subsidio";
+            subsidiados = subsidiados + galones;
+        }
+
+    }
+
+    let total = galones * precio;
+
+    if (tipo == "super") {
+        superDia = superDia + total;
+    }
+
+    if (tipo == "regular") {
+        regularDia = regularDia + total;
+    }
+
+    if (tipo == "diesel") {
+        dieselDia = dieselDia + total;
+    }
+
+    localStorage.setItem("superDia", superDia);
+    localStorage.setItem("regularDia", regularDia);
+    localStorage.setItem("dieselDia", dieselDia);
+    localStorage.setItem("subsidiados", subsidiados);
+
+    document.getElementById("respuesta").innerHTML =
+        "Galones: " + galones + "<br>" +
+        estado + "<br>" +
+        "Precio por galón: Q" + precio.toFixed(2) + "<br>" +
+        "Total cobrado: Q" + total.toFixed(2);
+
+    document.getElementById("cantidad").value = "";
+
+    actualizar();
+}
+
+function actualizar() {
+
+    let totalDia = superDia + regularDia + dieselDia;
+
+    document.getElementById("ventaSuper").innerHTML =
+        "Q" + superDia.toFixed(2);
+
+    document.getElementById("ventaRegular").innerHTML =
+        "Q" + regularDia.toFixed(2);
+
+    document.getElementById("ventaDiesel").innerHTML =
+        "Q" + dieselDia.toFixed(2);
+
+    document.getElementById("ventaTotal").innerHTML =
+        "Q" + totalDia.toFixed(2);
+
+    document.getElementById("galonesConSubsidio").innerHTML =
+        subsidiados.toFixed(2);
+}
+
+function borrarDatos() {
+
+    localStorage.removeItem("superDia");
+    localStorage.removeItem("regularDia");
+    localStorage.removeItem("dieselDia");
+    localStorage.removeItem("subsidiados");
+
+    superDia = 0;
+    regularDia = 0;
+    dieselDia = 0;
+    subsidiados = 0;
+
+    document.getElementById("respuesta").innerHTML =
+        "Todavía no se ha registrado ninguna venta.";
+
+    actualizar();
+}
+
+</script>
+
+</body>
+</html>
